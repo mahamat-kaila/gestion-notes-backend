@@ -44,4 +44,11 @@ public class NoteController {
         noteService.deleteNote(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/moyenne/eleve/{eleveId}/trimestre/{trimestre}")    public ResponseEntity<Double> getMoyenne(
+            @PathVariable Long eleveId,
+            @PathVariable Trimestre trimestre) {
+        Double moyenne = noteService.calculerMoyenne(eleveId, trimestre);
+        return ResponseEntity.ok(moyenne);
+    }
 }

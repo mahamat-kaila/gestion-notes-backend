@@ -34,4 +34,20 @@ public class NoteService {
     public void deleteNote(Long id) {
         noteRepository.deleteById(id);
     }
+
+    public Double calculerMoyenne(Long eleveId, Trimestre trimestre) {
+        List<Note> notes = noteRepository.findByEleveIdAndTrimestre(eleveId, trimestre);
+        if (notes.isEmpty()) return 0.0;
+
+        double sommeNoteCoeff = 0.0;
+        double sommeCoeff = 0.0;
+
+        for (Note note : notes) {
+            double coeff = note.getMatiere().getCoefficient();
+            sommeNoteCoeff += note.getValeur() * coeff;
+            sommeCoeff += coeff;
+        }
+
+        return Math.round((sommeNoteCoeff / sommeCoeff) * 100.0) / 100.0;
+    }
 }
