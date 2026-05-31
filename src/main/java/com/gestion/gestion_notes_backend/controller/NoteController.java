@@ -59,6 +59,15 @@ public class NoteController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/rang/eleve/{eleveId}/trimestre/{trimestre}/classe/{classeId}")
+    public ResponseEntity<Integer> getRang(
+            @PathVariable Long eleveId,
+            @PathVariable Trimestre trimestre,
+            @PathVariable Long classeId) {
+        int rang = noteService.calculerRang(eleveId, trimestre, classeId);
+        return ResponseEntity.ok(rang);
+    }
+
     @GetMapping("/moyenne/eleve/{eleveId}/trimestre/{trimestre}")
     public ResponseEntity<Double> getMoyenne(
             @PathVariable Long eleveId,

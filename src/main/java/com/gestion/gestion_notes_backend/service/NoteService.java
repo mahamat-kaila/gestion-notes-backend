@@ -42,6 +42,35 @@ public class NoteService {
         noteRepository.deleteById(id);
     }
 
+    public int calculerRang(Long eleveId, Trimestre trimestre, Long classeId) {
+        // Récupérer tous les élèves de la classe
+        List<Note> toutesNotes = noteRepository.findAll();
+
+        // Calculer la moyenne de chaque élève de la classe
+        java.util.Map<Long, Double> moyennesEleves = new java.util.HashMap<>();
+
+        toutesNotes.stream()
+                .filter(n -> n.getTrimestre() == trimestre
+                        && n.getEleve() != null
+                        && n.getEleve().getClasse() != null
+                        && n.getEleve().getClasse().getId().equals(classeId))
+                .forEach(n -> {
+                    Long id = n.getEleve().getId();
+                    moyennesEleves.put(id, calculerMoyenneGenerale(id, trimestre));
+                });
+
+        if (!moyennesEleves.containsKey(eleveId)) return 0;
+
+        double moyenneEleve = moyennesEleves.get(eleveId);
+
+        // Calculer le rang
+        int rang = 1;
+        for (double moyenne : moyennesEleves.values()) {
+            if (moyenne > moyenneEleve) rang++;
+        }
+        return rang;
+    }
+
     public Double calculerMoyenneGenerale(Long eleveId, Trimestre trimestre) {
         List<Note> notes = noteRepository.findByEleveIdAndTrimestre(eleveId, trimestre);
         if (notes.isEmpty()) return 0.0;

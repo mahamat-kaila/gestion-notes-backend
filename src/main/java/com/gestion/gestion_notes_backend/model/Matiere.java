@@ -12,6 +12,7 @@ public class Matiere {
 
     private String nom;
     private Double coefficient;
+    private String groupe;
 
     // Getters et Setters
     public Long getId() { return id; }
@@ -22,4 +23,7 @@ public class Matiere {
 
     public Double getCoefficient() { return coefficient; }
     public void setCoefficient(Double coefficient) { this.coefficient = coefficient; }
+
+    public String getGroupe() { return groupe; }
+    public void setGroupe(String groupe) { this.groupe = groupe; }
 }
