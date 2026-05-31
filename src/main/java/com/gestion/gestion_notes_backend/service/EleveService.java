@@ -1,11 +1,9 @@
 package com.gestion.gestion_notes_backend.service;
 
-import com.gestion.gestion_notes_backend.model.Classe;
-import com.gestion.gestion_notes_backend.model.Eleve;
-import com.gestion.gestion_notes_backend.repository.ClasseRepository;
-import com.gestion.gestion_notes_backend.repository.EleveRepository;
-import com.gestion.gestion_notes_backend.repository.NoteRepository;
+import com.gestion.gestion_notes_backend.model.*;
+import com.gestion.gestion_notes_backend.repository.*;
 import org.springframework.stereotype.Service;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -14,11 +12,14 @@ public class EleveService {
     private final EleveRepository eleveRepository;
     private final ClasseRepository classeRepository;
     private final NoteRepository noteRepository;
+    private final AffectationRepository affectationRepository;
 
-    public EleveService(EleveRepository eleveRepository, ClasseRepository classeRepository, NoteRepository noteRepository) {
+    public EleveService(EleveRepository eleveRepository, ClasseRepository classeRepository,
+                        NoteRepository noteRepository, AffectationRepository affectationRepository) {
         this.eleveRepository = eleveRepository;
         this.classeRepository = classeRepository;
         this.noteRepository = noteRepository;
+        this.affectationRepository = affectationRepository;
     }
 
     public List<Eleve> getAllEleves() {
@@ -35,18 +36,25 @@ public class EleveService {
 
     public Eleve saveEleve(Eleve eleve) {
         // Générer le matricule automatiquement
+        // Générer le matricule automatiquement
         String annee = String.valueOf(java.time.Year.now().getValue());
         Eleve dernierEleve = eleveRepository.findLastEleve();
         int numero = 1;
         if (dernierEleve != null && dernierEleve.getMatricule() != null) {
-            String dernierMatricule = dernierEleve.getMatricule();
             try {
-                numero = Integer.parseInt(dernierMatricule.substring(6)) + 1;
+                numero = Integer.parseInt(dernierEleve.getMatricule().substring(6)) + 1;
             } catch (Exception e) {
                 numero = 1;
             }
         }
-        String matricule = annee + "SB" + String.format("%03d", numero);
+// Vérifier que le matricule n'existe pas déjà
+        String matricule;
+        do {
+            matricule = annee + "SB" + String.format("%03d", numero);
+            numero++;
+        } while (eleveRepository.findByMatricule(matricule) != null);
+        eleve.setMatricule(matricule);
+
         // Calculer l'âge
         if (eleve.getDateNaissance() != null) {
             int age = java.time.Period.between(
@@ -55,7 +63,6 @@ public class EleveService {
             ).getYears();
             eleve.setAge(age);
         }
-        eleve.setMatricule(matricule);
 
         Eleve savedEleve = eleveRepository.save(eleve);
 
@@ -66,6 +73,22 @@ public class EleveService {
                 long effectif = eleveRepository.countByClasseId(classe.getId());
                 classe.setEffectif((int) effectif);
                 classeRepository.save(classe);
+
+                // Créer notes par défaut pour toutes les matières affectées à la classe
+                List<Affectation> affectations = affectationRepository.findByClasseId(classe.getId());
+                for (Trimestre trimestre : Trimestre.values()) {
+                    for (Affectation affectation : affectations) {
+                        Note note = new Note();
+                        note.setEleve(savedEleve);
+                        note.setMatiere(affectation.getMatiere());
+                        note.setTrimestre(trimestre);
+                        note.setDevoir1(0.0);
+                        note.setDevoir2(0.0);
+                        note.setComposition(0.0);
+                        note.setDateNote(LocalDate.now());
+                        noteRepository.save(note);
+                    }
+                }
             }
         }
 
@@ -76,10 +99,8 @@ public class EleveService {
         Eleve eleve = eleveRepository.findById(id).orElse(null);
         if (eleve != null) {
             Classe classe = eleve.getClasse();
-            // Supprimer d'abord les notes de l'élève
             noteRepository.deleteAll(noteRepository.findByEleveId(id));
             eleveRepository.deleteById(id);
-            // Mettre à jour l'effectif
             if (classe != null) {
                 long effectif = eleveRepository.countByClasseId(classe.getId());
                 classe.setEffectif((int) effectif);

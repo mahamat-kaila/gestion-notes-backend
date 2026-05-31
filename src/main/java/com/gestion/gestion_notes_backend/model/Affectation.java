@@ -12,7 +12,7 @@ public class Affectation {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "professeur_id")
+    @JoinColumn(name = "professeur_id", nullable = true)
     @JsonIgnoreProperties({"affectations"})
     private Professeur professeur;
 

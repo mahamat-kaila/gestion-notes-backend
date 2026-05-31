@@ -28,9 +28,13 @@ public class NoteService {
     }
 
     public Note saveNote(Note note) {
-        if (note.getValeur() < 0 || note.getValeur() > 20) {
-            throw new RuntimeException("La note doit être comprise entre 0 et 20 !");
-        }
+        // Validation des notes
+        if (note.getDevoir1() != null && (note.getDevoir1() < 0 || note.getDevoir1() > 20))
+            throw new RuntimeException("Le devoir 1 doit être entre 0 et 20 !");
+        if (note.getDevoir2() != null && (note.getDevoir2() < 0 || note.getDevoir2() > 20))
+            throw new RuntimeException("Le devoir 2 doit être entre 0 et 20 !");
+        if (note.getComposition() != null && (note.getComposition() < 0 || note.getComposition() > 20))
+            throw new RuntimeException("La composition doit être entre 0 et 20 !");
         return noteRepository.save(note);
     }
 
@@ -38,19 +42,23 @@ public class NoteService {
         noteRepository.deleteById(id);
     }
 
-    public Double calculerMoyenne(Long eleveId, Trimestre trimestre) {
+    public Double calculerMoyenneGenerale(Long eleveId, Trimestre trimestre) {
         List<Note> notes = noteRepository.findByEleveIdAndTrimestre(eleveId, trimestre);
         if (notes.isEmpty()) return 0.0;
 
-        double sommeNoteCoeff = 0.0;
+        double sommeCoeffMoyenne = 0.0;
         double sommeCoeff = 0.0;
 
         for (Note note : notes) {
-            double coeff = note.getMatiere().getCoefficient();
-            sommeNoteCoeff += note.getValeur() * coeff;
-            sommeCoeff += coeff;
+            Double moyenneGenerale = note.getMoyenneGenerale();
+            if (moyenneGenerale != null && note.getMatiere() != null) {
+                double coeff = note.getMatiere().getCoefficient();
+                sommeCoeffMoyenne += moyenneGenerale * coeff;
+                sommeCoeff += coeff;
+            }
         }
 
-        return Math.round((sommeNoteCoeff / sommeCoeff) * 100.0) / 100.0;
+        if (sommeCoeff == 0) return 0.0;
+        return Math.round((sommeCoeffMoyenne / sommeCoeff) * 100.0) / 100.0;
     }
 }
