@@ -34,7 +34,24 @@ public class EleveService {
     }
 
     public Eleve saveEleve(Eleve eleve) {
+        // Générer le matricule automatiquement
+        String annee = String.valueOf(java.time.Year.now().getValue());
+        Eleve dernierEleve = eleveRepository.findLastEleve();
+        int numero = 1;
+        if (dernierEleve != null && dernierEleve.getMatricule() != null) {
+            String dernierMatricule = dernierEleve.getMatricule();
+            try {
+                numero = Integer.parseInt(dernierMatricule.substring(6)) + 1;
+            } catch (Exception e) {
+                numero = 1;
+            }
+        }
+        String matricule = annee + "SB" + String.format("%03d", numero);
+        eleve.setMatricule(matricule);
+
         Eleve savedEleve = eleveRepository.save(eleve);
+
+        // Mettre à jour l'effectif de la classe
         if (savedEleve.getClasse() != null) {
             Classe classe = classeRepository.findById(savedEleve.getClasse().getId()).orElse(null);
             if (classe != null) {

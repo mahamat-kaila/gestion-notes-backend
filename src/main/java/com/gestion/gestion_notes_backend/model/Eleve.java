@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
-@Table(name = "eleves")
+@Table(name = "eleves", uniqueConstraints = @UniqueConstraint(columnNames = "matricule"))
 public class Eleve {
 
     @Id
