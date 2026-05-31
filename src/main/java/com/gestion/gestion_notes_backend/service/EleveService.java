@@ -47,6 +47,14 @@ public class EleveService {
             }
         }
         String matricule = annee + "SB" + String.format("%03d", numero);
+        // Calculer l'âge
+        if (eleve.getDateNaissance() != null) {
+            int age = java.time.Period.between(
+                    eleve.getDateNaissance(),
+                    java.time.LocalDate.now()
+            ).getYears();
+            eleve.setAge(age);
+        }
         eleve.setMatricule(matricule);
 
         Eleve savedEleve = eleveRepository.save(eleve);
@@ -60,6 +68,7 @@ public class EleveService {
                 classeRepository.save(classe);
             }
         }
+
         return savedEleve;
     }
 

@@ -12,6 +12,7 @@ public class Eleve {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private Integer age;
     private String matricule;
     private String nom;
     private String prenom;
@@ -26,6 +27,9 @@ public class Eleve {
     // Getters et Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
+    public Integer getAge() { return age; }
+    public void setAge(Integer age) { this.age = age; }
 
     public String getMatricule() { return matricule; }
     public void setMatricule(String matricule) { this.matricule = matricule; }
