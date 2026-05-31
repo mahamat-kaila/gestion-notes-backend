@@ -3,7 +3,7 @@ package com.gestion.gestion_notes_backend.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "classes")
+@Table(name = "classes", uniqueConstraints = @UniqueConstraint(columnNames = "nom"))
 public class Classe {
 
     @Id

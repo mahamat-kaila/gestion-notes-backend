@@ -2,6 +2,7 @@ package com.gestion.gestion_notes_backend.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "eleves")
@@ -19,6 +20,7 @@ public class Eleve {
     private String numeroParent;
     @ManyToOne
     @JoinColumn(name = "classe_id")
+    @JsonIgnoreProperties({"eleves"})
     private Classe classe;
 
     // Getters et Setters

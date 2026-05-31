@@ -23,6 +23,10 @@ public class MatiereService {
     }
 
     public Matiere saveMatiere(Matiere matiere) {
+        Matiere existing = matiereRepository.findByNom(matiere.getNom());
+        if (existing != null) {
+            throw new RuntimeException("Une matière avec ce nom existe déjà !");
+        }
         return matiereRepository.save(matiere);
     }
 

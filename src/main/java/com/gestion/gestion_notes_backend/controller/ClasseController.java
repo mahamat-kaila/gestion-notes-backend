@@ -29,8 +29,12 @@ public class ClasseController {
     }
 
     @PostMapping
-    public Classe createClasse(@RequestBody Classe classe) {
-        return classeService.saveClasse(classe);
+    public ResponseEntity<?> createClasse(@RequestBody Classe classe) {
+        try {
+            return ResponseEntity.ok(classeService.saveClasse(classe));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Une classe avec ce nom existe déjà !");
+        }
     }
 
     @PutMapping("/{id}")

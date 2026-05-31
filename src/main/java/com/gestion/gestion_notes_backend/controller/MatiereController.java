@@ -29,8 +29,12 @@ public class MatiereController {
     }
 
     @PostMapping
-    public Matiere createMatiere(@RequestBody Matiere matiere) {
-        return matiereService.saveMatiere(matiere);
+    public ResponseEntity<?> createMatiere(@RequestBody Matiere matiere) {
+        try {
+            return ResponseEntity.ok(matiereService.saveMatiere(matiere));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Une matière avec ce nom existe déjà !");
+        }
     }
 
     @PutMapping("/{id}")

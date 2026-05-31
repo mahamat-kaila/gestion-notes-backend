@@ -4,6 +4,7 @@ import com.gestion.gestion_notes_backend.model.Classe;
 import com.gestion.gestion_notes_backend.model.Eleve;
 import com.gestion.gestion_notes_backend.repository.ClasseRepository;
 import com.gestion.gestion_notes_backend.repository.EleveRepository;
+import com.gestion.gestion_notes_backend.repository.NoteRepository;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -12,10 +13,12 @@ public class EleveService {
 
     private final EleveRepository eleveRepository;
     private final ClasseRepository classeRepository;
+    private final NoteRepository noteRepository;
 
-    public EleveService(EleveRepository eleveRepository, ClasseRepository classeRepository) {
+    public EleveService(EleveRepository eleveRepository, ClasseRepository classeRepository, NoteRepository noteRepository) {
         this.eleveRepository = eleveRepository;
         this.classeRepository = classeRepository;
+        this.noteRepository = noteRepository;
     }
 
     public List<Eleve> getAllEleves() {
@@ -32,8 +35,6 @@ public class EleveService {
 
     public Eleve saveEleve(Eleve eleve) {
         Eleve savedEleve = eleveRepository.save(eleve);
-
-        // Mettre à jour l'effectif de la classe
         if (savedEleve.getClasse() != null) {
             Classe classe = classeRepository.findById(savedEleve.getClasse().getId()).orElse(null);
             if (classe != null) {
@@ -42,7 +43,6 @@ public class EleveService {
                 classeRepository.save(classe);
             }
         }
-
         return savedEleve;
     }
 
@@ -50,9 +50,10 @@ public class EleveService {
         Eleve eleve = eleveRepository.findById(id).orElse(null);
         if (eleve != null) {
             Classe classe = eleve.getClasse();
+            // Supprimer d'abord les notes de l'élève
+            noteRepository.deleteAll(noteRepository.findByEleveId(id));
             eleveRepository.deleteById(id);
-
-            // Mettre à jour l'effectif après suppression
+            // Mettre à jour l'effectif
             if (classe != null) {
                 long effectif = eleveRepository.countByClasseId(classe.getId());
                 classe.setEffectif((int) effectif);

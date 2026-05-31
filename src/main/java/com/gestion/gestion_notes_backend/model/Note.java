@@ -2,6 +2,7 @@ package com.gestion.gestion_notes_backend.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "notes")
@@ -13,6 +14,7 @@ public class Note {
 
     @ManyToOne
     @JoinColumn(name = "matiere_id")
+    @JsonIgnoreProperties({"notes"})
     private Matiere matiere;    private Double valeur;
     private LocalDate dateNote;
     @Enumerated(EnumType.STRING)
@@ -20,6 +22,7 @@ public class Note {
 
     @ManyToOne
     @JoinColumn(name = "eleve_id")
+    @JsonIgnoreProperties({"notes"})
     private Eleve eleve;
 
     // Getters et Setters

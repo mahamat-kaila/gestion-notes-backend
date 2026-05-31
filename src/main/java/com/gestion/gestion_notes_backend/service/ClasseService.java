@@ -23,6 +23,10 @@ public class ClasseService {
     }
 
     public Classe saveClasse(Classe classe) {
+        Classe existing = classeRepository.findByNom(classe.getNom());
+        if (existing != null) {
+            throw new RuntimeException("Une classe avec ce nom existe déjà !");
+        }
         return classeRepository.save(classe);
     }
 
