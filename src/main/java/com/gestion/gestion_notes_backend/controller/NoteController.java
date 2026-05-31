@@ -35,8 +35,12 @@ public class NoteController {
     }
 
     @PostMapping
-    public Note createNote(@RequestBody Note note) {
-        return noteService.saveNote(note);
+    public ResponseEntity<?> createNote(@RequestBody Note note) {
+        try {
+            return ResponseEntity.ok(noteService.saveNote(note));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")
