@@ -21,6 +21,18 @@ public class NoteController {
     public List<Note> getAllNotes() {
         return noteService.getAllNotes();
     }
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateNote(@PathVariable Long id, @RequestBody Note note) {
+        if (noteService.getAllNotes().stream().noneMatch(n -> n.getId().equals(id))) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
+            note.setId(id);
+            return ResponseEntity.ok(noteService.saveNote(note));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 
     @GetMapping("/eleve/{eleveId}")
     public List<Note> getNotesByEleve(@PathVariable Long eleveId) {
