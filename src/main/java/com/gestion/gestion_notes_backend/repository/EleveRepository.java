@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface EleveRepository extends JpaRepository<Eleve, Long> {
     Eleve findByMatricule(String matricule);
+    long countByClasseId(Long classeId);
 }

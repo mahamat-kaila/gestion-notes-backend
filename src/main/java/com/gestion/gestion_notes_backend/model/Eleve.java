@@ -17,7 +17,9 @@ public class Eleve {
     private LocalDate dateNaissance;
     private String lieuNaissance;
     private String numeroParent;
-    private String classe;
+    @ManyToOne
+    @JoinColumn(name = "classe_id")
+    private Classe classe;
 
     // Getters et Setters
     public Long getId() { return id; }
@@ -41,6 +43,6 @@ public class Eleve {
     public String getNumeroParent() { return numeroParent; }
     public void setNumeroParent(String numeroParent) { this.numeroParent = numeroParent; }
 
-    public String getClasse() { return classe; }
-    public void setClasse(String classe) { this.classe = classe; }
+    public Classe getClasse() { return classe; }
+    public void setClasse(Classe classe) { this.classe = classe; }
 }
