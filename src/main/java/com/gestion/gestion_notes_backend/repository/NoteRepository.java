@@ -10,4 +10,8 @@ import java.util.List;
 public interface NoteRepository extends JpaRepository<Note, Long> {
     List<Note> findByEleveId(Long eleveId);
     List<Note> findByEleveIdAndTrimestre(Long eleveId, Trimestre trimestre);
+    List<Note> findByEleveIdAndAnneeScolaireId(Long eleveId, Long anneeId);
+    List<Note> findByEleveIdAndTrimestreAndAnneeScolaireId(Long eleveId, Trimestre trimestre, Long anneeId);
+    List<Note> findByAnneeScolaireId(Long anneeId);
+    void deleteByAnneeScolaireId(Long anneeId);
 }

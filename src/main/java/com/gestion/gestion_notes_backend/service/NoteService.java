@@ -1,8 +1,7 @@
 package com.gestion.gestion_notes_backend.service;
 
-import com.gestion.gestion_notes_backend.model.Note;
-import com.gestion.gestion_notes_backend.model.Trimestre;
-import com.gestion.gestion_notes_backend.repository.NoteRepository;
+import com.gestion.gestion_notes_backend.model.*;
+import com.gestion.gestion_notes_backend.repository.*;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -10,9 +9,11 @@ import java.util.List;
 public class NoteService {
 
     private final NoteRepository noteRepository;
+    private final AnneeScolaireRepository anneeScolaireRepository;
 
-    public NoteService(NoteRepository noteRepository) {
+    public NoteService(NoteRepository noteRepository, AnneeScolaireRepository anneeScolaireRepository) {
         this.noteRepository = noteRepository;
+        this.anneeScolaireRepository = anneeScolaireRepository;
     }
 
     public List<Note> getAllNotes() {
@@ -20,21 +21,29 @@ public class NoteService {
     }
 
     public List<Note> getNotesByEleve(Long eleveId) {
-        return noteRepository.findByEleveId(eleveId);
+        AnneeScolaire anneeActive = anneeScolaireRepository.findByActive(true);
+        if (anneeActive == null) return noteRepository.findByEleveId(eleveId);
+        return noteRepository.findByEleveIdAndAnneeScolaireId(eleveId, anneeActive.getId());
     }
 
     public List<Note> getNotesByEleveAndTrimestre(Long eleveId, Trimestre trimestre) {
-        return noteRepository.findByEleveIdAndTrimestre(eleveId, trimestre);
+        AnneeScolaire anneeActive = anneeScolaireRepository.findByActive(true);
+        if (anneeActive == null) return noteRepository.findByEleveIdAndTrimestre(eleveId, trimestre);
+        return noteRepository.findByEleveIdAndTrimestreAndAnneeScolaireId(eleveId, trimestre, anneeActive.getId());
     }
 
     public Note saveNote(Note note) {
-        // Validation des notes
         if (note.getDevoir1() != null && (note.getDevoir1() < 0 || note.getDevoir1() > 20))
             throw new RuntimeException("Le devoir 1 doit être entre 0 et 20 !");
         if (note.getDevoir2() != null && (note.getDevoir2() < 0 || note.getDevoir2() > 20))
             throw new RuntimeException("Le devoir 2 doit être entre 0 et 20 !");
         if (note.getComposition() != null && (note.getComposition() < 0 || note.getComposition() > 20))
             throw new RuntimeException("La composition doit être entre 0 et 20 !");
+
+        // Associer l'année scolaire active
+        AnneeScolaire anneeActive = anneeScolaireRepository.findByActive(true);
+        if (anneeActive != null) note.setAnneeScolaire(anneeActive);
+
         return noteRepository.save(note);
     }
 
@@ -42,37 +51,8 @@ public class NoteService {
         noteRepository.deleteById(id);
     }
 
-    public int calculerRang(Long eleveId, Trimestre trimestre, Long classeId) {
-        // Récupérer tous les élèves de la classe
-        List<Note> toutesNotes = noteRepository.findAll();
-
-        // Calculer la moyenne de chaque élève de la classe
-        java.util.Map<Long, Double> moyennesEleves = new java.util.HashMap<>();
-
-        toutesNotes.stream()
-                .filter(n -> n.getTrimestre() == trimestre
-                        && n.getEleve() != null
-                        && n.getEleve().getClasse() != null
-                        && n.getEleve().getClasse().getId().equals(classeId))
-                .forEach(n -> {
-                    Long id = n.getEleve().getId();
-                    moyennesEleves.put(id, calculerMoyenneGenerale(id, trimestre));
-                });
-
-        if (!moyennesEleves.containsKey(eleveId)) return 0;
-
-        double moyenneEleve = moyennesEleves.get(eleveId);
-
-        // Calculer le rang
-        int rang = 1;
-        for (double moyenne : moyennesEleves.values()) {
-            if (moyenne > moyenneEleve) rang++;
-        }
-        return rang;
-    }
-
     public Double calculerMoyenneGenerale(Long eleveId, Trimestre trimestre) {
-        List<Note> notes = noteRepository.findByEleveIdAndTrimestre(eleveId, trimestre);
+        List<Note> notes = getNotesByEleveAndTrimestre(eleveId, trimestre);
         if (notes.isEmpty()) return 0.0;
 
         double sommeCoeffMoyenne = 0.0;
@@ -89,5 +69,32 @@ public class NoteService {
 
         if (sommeCoeff == 0) return 0.0;
         return Math.round((sommeCoeffMoyenne / sommeCoeff) * 100.0) / 100.0;
+    }
+
+    public int calculerRang(Long eleveId, Trimestre trimestre, Long classeId) {
+        AnneeScolaire anneeActive = anneeScolaireRepository.findByActive(true);
+        List<Note> toutesNotes = noteRepository.findAll();
+
+        java.util.Map<Long, Double> moyennesEleves = new java.util.HashMap<>();
+
+        toutesNotes.stream()
+                .filter(n -> n.getTrimestre() == trimestre
+                        && n.getEleve() != null
+                        && n.getEleve().getClasse() != null
+                        && n.getEleve().getClasse().getId().equals(classeId)
+                        && (anneeActive == null || (n.getAnneeScolaire() != null && n.getAnneeScolaire().getId().equals(anneeActive.getId()))))
+                .forEach(n -> {
+                    Long id = n.getEleve().getId();
+                    moyennesEleves.put(id, calculerMoyenneGenerale(id, trimestre));
+                });
+
+        if (!moyennesEleves.containsKey(eleveId)) return 0;
+
+        double moyenneEleve = moyennesEleves.get(eleveId);
+        int rang = 1;
+        for (double moyenne : moyennesEleves.values()) {
+            if (moyenne > moyenneEleve) rang++;
+        }
+        return rang;
     }
 }

@@ -26,9 +26,18 @@ public class Affectation {
     @JsonIgnoreProperties({"affectations"})
     private Classe classe;
 
+    @ManyToOne
+    @JoinColumn(name = "annee_scolaire_id")
+    @JsonIgnoreProperties({"affectations"})
+    private AnneeScolaire anneeScolaire;
+
+
     // Getters et Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
+    public AnneeScolaire getAnneeScolaire() { return anneeScolaire; }
+    public void setAnneeScolaire(AnneeScolaire anneeScolaire) { this.anneeScolaire = anneeScolaire; }
 
     public Professeur getProfesseur() { return professeur; }
     public void setProfesseur(Professeur professeur) { this.professeur = professeur; }

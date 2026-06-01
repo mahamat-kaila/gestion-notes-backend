@@ -30,6 +30,10 @@ public class Note {
     @JoinColumn(name = "matiere_id")
     @JsonIgnoreProperties({"notes"})
     private Matiere matiere;
+    @ManyToOne
+    @JoinColumn(name = "annee_scolaire_id")
+    @JsonIgnoreProperties({"notes"})
+    private AnneeScolaire anneeScolaire;
 
     // Calculs automatiques
     public Double getMoyenneDevoirs() {
@@ -42,6 +46,9 @@ public class Note {
         if (noteUnique != null) return noteUnique;
         return composition;
     }
+
+    public AnneeScolaire getAnneeScolaire() { return anneeScolaire; }
+    public void setAnneeScolaire(AnneeScolaire anneeScolaire) { this.anneeScolaire = anneeScolaire; }
 
     public Double getMoyenneGenerale() {
         if (noteUnique != null) return noteUnique;

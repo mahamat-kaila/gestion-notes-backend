@@ -24,7 +24,16 @@ public class Eleve {
     @JsonIgnoreProperties({"eleves"})
     private Classe classe;
 
+    @ManyToOne
+    @JoinColumn(name = "annee_scolaire_id")
+    @JsonIgnoreProperties({"eleves"})
+    private AnneeScolaire anneeScolaire;
+
     // Getters et Setters
+
+    public AnneeScolaire getAnneeScolaire() { return anneeScolaire; }
+    public void setAnneeScolaire(AnneeScolaire anneeScolaire) { this.anneeScolaire = anneeScolaire; }
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

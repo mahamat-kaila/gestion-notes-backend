@@ -13,17 +13,22 @@ public class EleveService {
     private final ClasseRepository classeRepository;
     private final NoteRepository noteRepository;
     private final AffectationRepository affectationRepository;
+    private final AnneeScolaireRepository anneeScolaireRepository;
 
     public EleveService(EleveRepository eleveRepository, ClasseRepository classeRepository,
-                        NoteRepository noteRepository, AffectationRepository affectationRepository) {
+                        NoteRepository noteRepository, AffectationRepository affectationRepository,
+                        AnneeScolaireRepository anneeScolaireRepository) {
         this.eleveRepository = eleveRepository;
         this.classeRepository = classeRepository;
         this.noteRepository = noteRepository;
         this.affectationRepository = affectationRepository;
+        this.anneeScolaireRepository = anneeScolaireRepository;
     }
 
     public List<Eleve> getAllEleves() {
-        return eleveRepository.findAll();
+        AnneeScolaire anneeActive = anneeScolaireRepository.findByActive(true);
+        if (anneeActive == null) return eleveRepository.findAll();
+        return eleveRepository.findByAnneeScolaireId(anneeActive.getId());
     }
 
     public Eleve getEleveById(Long id) {
@@ -35,7 +40,12 @@ public class EleveService {
     }
 
     public Eleve saveEleve(Eleve eleve) {
-        // Générer le matricule automatiquement
+        // Associer l'année scolaire active
+        AnneeScolaire anneeActive = anneeScolaireRepository.findByActive(true);
+        if (anneeActive != null) {
+            eleve.setAnneeScolaire(anneeActive);
+        }
+
         // Générer le matricule automatiquement
         String annee = String.valueOf(java.time.Year.now().getValue());
         Eleve dernierEleve = eleveRepository.findLastEleve();
@@ -47,7 +57,6 @@ public class EleveService {
                 numero = 1;
             }
         }
-// Vérifier que le matricule n'existe pas déjà
         String matricule;
         do {
             matricule = annee + "SB" + String.format("%03d", numero);
@@ -70,12 +79,17 @@ public class EleveService {
         if (savedEleve.getClasse() != null) {
             Classe classe = classeRepository.findById(savedEleve.getClasse().getId()).orElse(null);
             if (classe != null) {
-                long effectif = eleveRepository.countByClasseId(classe.getId());
+                long effectif = anneeActive != null ?
+                        eleveRepository.countByClasseIdAndAnneeScolaireId(classe.getId(), anneeActive.getId()) :
+                        eleveRepository.countByClasseId(classe.getId());
                 classe.setEffectif((int) effectif);
                 classeRepository.save(classe);
 
-                // Créer notes par défaut pour toutes les matières affectées à la classe
-                List<Affectation> affectations = affectationRepository.findByClasseId(classe.getId());
+                // Créer notes par défaut
+                List<Affectation> affectations = anneeActive != null ?
+                        affectationRepository.findByClasseIdAndAnneeScolaireId(classe.getId(), anneeActive.getId()) :
+                        affectationRepository.findByClasseId(classe.getId());
+
                 for (Trimestre trimestre : Trimestre.values()) {
                     for (Affectation affectation : affectations) {
                         Note note = new Note();
@@ -86,6 +100,7 @@ public class EleveService {
                         note.setDevoir2(0.0);
                         note.setComposition(0.0);
                         note.setDateNote(LocalDate.now());
+                        note.setAnneeScolaire(anneeActive);
                         noteRepository.save(note);
                     }
                 }
@@ -102,7 +117,10 @@ public class EleveService {
             noteRepository.deleteAll(noteRepository.findByEleveId(id));
             eleveRepository.deleteById(id);
             if (classe != null) {
-                long effectif = eleveRepository.countByClasseId(classe.getId());
+                AnneeScolaire anneeActive = anneeScolaireRepository.findByActive(true);
+                long effectif = anneeActive != null ?
+                        eleveRepository.countByClasseIdAndAnneeScolaireId(classe.getId(), anneeActive.getId()) :
+                        eleveRepository.countByClasseId(classe.getId());
                 classe.setEffectif((int) effectif);
                 classeRepository.save(classe);
             }
